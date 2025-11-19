@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mediaproof AI — Verify Media</title>
+
+  <!-- Modern fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+  <meta name="description" content="Mediaproof AI — premium media verification: analyze images, videos & audio for authenticity." />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <!-- Placeholder SVG logo / brand mark -->
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mediaproof logo">
+          <defs>
+            <linearGradient id="g1" x1="0" x2="1">
+              <stop offset="0" stop-color="#7C4DFF" />
+              <stop offset="1" stop-color="#2BC0E4" />
+            </linearGradient>
+          </defs>
+          <rect width="48" height="48" rx="10" fill="url(#g1)" />
+          <path d="M14 30 L24 16 L34 30 Z" fill="rgba(255,255,255,0.95)" opacity="0.95"></path>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Mediaproof AI</h1>
+        <p class="tag">Verify Media • Trustworthy AI</p>
+      </div>
+    </div>
+
+    <nav class="top-actions" aria-hidden="true">
+      <button class="btn ghost">Docs</button>
+      <button class="btn">Sign in</button>
+    </nav>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div class="hero-left">
+        <h2 class="hero-title">AI-powered media verification for the modern world</h2>
+        <p class="hero-sub">Instantly analyze images, video & audio using multimodal AI — highlight manipulations, provenance signals and trust scores with enterprise-grade clarity.</p>
+
+        <div class="upload-card" id="uploadCard">
+          <div class="upload-stage">
+            <label for="fileInput" class="dropzone" id="dropzone" tabindex="0" aria-label="Upload or drop file">
+              <input type="file" id="fileInput" accept="image/*,video/*,audio/*" />
+              <div class="dropzone-content">
+                <div class="illustration-hero" aria-hidden="true">
+                  <!-- hero illustration placeholder -->
+                  <svg viewBox="0 0 120 80" width="120" height="80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="0" y="0" width="120" height="80" rx="12" fill="rgba(255,255,255,0.06)"/>
+                    <g transform="translate(8,8)" opacity="0.95">
+                      <rect x="0" y="0" width="104" height="64" rx="8" fill="url(#hgrad)"/>
+                    </g>
+                    <defs>
+                      <linearGradient id="hgrad" x1="0" x2="1">
+                        <stop offset="0" stop-color="#6C5CE7"/>
+                        <stop offset="1" stop-color="#00C2FF"/>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+                <div class="upload-text">
+                  <strong>Drop file here</strong>
+                  <small>or click to browse • Images, Video, Audio</small>
+                </div>
+              </div>
+            </label>
+
+            <div class="upload-controls">
+              <button id="analyzeBtn" class="btn primary" aria-live="polite">Analyze</button>
+              <div class="file-meta" id="fileMeta" aria-hidden="true"></div>
+            </div>
+          </div>
+
+          <div class="progress-wrap hidden" id="progressWrap" aria-hidden="true" aria-live="polite">
+            <div class="progress-info">
+              <div class="scan-animation" id="scanAnim" aria-hidden="true">
+                <!-- AI scan animation placeholder (concentric rings) -->
+                <svg viewBox="0 0 48 48" width="36" height="36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="24" cy="24" r="10" stroke="rgba(255,255,255,0.12)" stroke-width="3" />
+                  <circle cx="24" cy="24" r="16" stroke="url(#sgrad)" stroke-width="2" stroke-linecap="round" stroke-dasharray="80"/>
+                  <defs>
+                    <linearGradient id="sgrad" x1="0" x2="1">
+                      <stop offset="0" stop-color="#8A7CFF"/>
+                      <stop offset="1" stop-color="#22D3EE"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <div class="progress-text">
+                <div class="small">Analyzing with Mediaproof AI</div>
+                <div class="big" id="progressPercent">0%</div>
+              </div>
+            </div>
+            <div class="progress-bar">
+              <div class="bar" id="progressBar" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="hero-right" aria-hidden="true">
+        <div class="placeholder-hero-illustration">
+          <!-- Premium illustration placeholder -->
+          <div class="hero-visual">
+            <svg viewBox="0 0 320 220" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration">
+              <defs>
+                <linearGradient id="illA" x1="0" x2="1">
+                  <stop offset="0" stop-color="#6C5CE7"/>
+                  <stop offset="1" stop-color="#00C2FF"/>
+                </linearGradient>
+              </defs>
+              <rect width="320" height="220" rx="16" fill="url(#illA)" opacity="0.12"/>
+              <g transform="translate(24,28)" fill="#fff" opacity="0.95">
+                <rect x="0" y="0" width="272" height="164" rx="10" fill="rgba(255,255,255,0.03)"/>
+                <circle cx="50" cy="62" r="26" fill="rgba(255,255,255,0.06)"/>
+                <rect x="100" y="40" width="120" height="12" rx="6" fill="rgba(255,255,255,0.06)"/>
+                <rect x="100" y="64" width="160" height="10" rx="5" fill="rgba(255,255,255,0.04)"/>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section id="results" class="results hidden" aria-live="polite">
+      <h3 class="results-title">Analysis Results</h3>
+
+      <div class="cards-grid">
+        <div class="card focus" id="cardAiScore">
+          <div class="card-icon" aria-hidden="true">
+            <!-- radar icon -->
+            <svg viewBox="0 0 24 24" width="28" height="28"><path fill="none" d="M0 0h24v24H0z"/><path fill="#ffffff" d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2zm1 15h-2v-2h2zm2.07-7.75L13 13V7h2a5 5 0 0 0-.93-2.75z"/></svg>
+          </div>
+          <div class="card-body">
+            <div class="card-label">AI Score</div>
+            <div class="card-value" id="aiScore">—</div>
+            <div class="card-sub" id="realFake">—</div>
+          </div>
+        </div>
+
+        <div class="card" id="cardTimeline">
+          <div class="card-icon" aria-hidden="true">
+            <!-- calendar icon -->
+            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path fill="#ffffff" d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 14H5V9h14z"/></svg>
+          </div>
+          <div class="card-body">
+            <div class="card-label">First Seen</div>
+            <div class="card-value" id="firstSeen">—</div>
+            <div class="card-sub">Last Posted: <span id="lastPosted">—</span></div>
+          </div>
+        </div>
+
+        <div class="card" id="cardPostedBy">
+          <div class="card-icon" aria-hidden="true">
+            <!-- user icon -->
+            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path fill="#ffffff" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5.33 0-8 2.67-8 5v1h16v-1c0-2.33-2.67-5-8-5z"/></svg>
+          </div>
+          <div class="card-body">
+            <div class="card-label">Posted By</div>
+            <div class="card-value" id="postedBy">—</div>
+            <div class="card-sub">Source reputation & history</div>
+          </div>
+        </div>
+
+        <div class="card" id="cardTrust">
+          <div class="card-icon" aria-hidden="true">
+            <!-- shield icon -->
+            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path fill="#ffffff" d="M12 2l7 3v6c0 5-3.33 9.74-7 11-3.67-1.26-7-6-7-11V5z"/></svg>
+          </div>
+          <div class="card-body">
+            <div class="card-label">Trustworthiness</div>
+            <div class="card-value" id="trustScore">—</div>
+            <div class="card-sub">Tampering: <span id="tampering">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="more-info">
+        <div class="result-panel fade-in">
+          <h4>Inspection details</h4>
+          <p class="muted" id="inspectionDetails">Detailed tampering markers, provenance links and AI model traces will appear here after analysis.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer" aria-hidden="true">
+    <div class="copyright">© Mediaproof AI — Built with care</div>
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
