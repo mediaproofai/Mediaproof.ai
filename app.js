@@ -114,7 +114,14 @@
 
     const file = fileInput.files[0];
     const formData = new FormData();
-    formData.append("file", file);
+formData.append("file", selectedFile);
+formData.append("email", email);
+
+const resp = await fetch(BACKEND, {
+  method: "POST",
+  body: formData
+});
+
 
     // Create XHR for progress reporting
     const xhr = new XMLHttpRequest();
