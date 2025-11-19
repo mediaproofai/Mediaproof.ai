@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head> 
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "YOUR_KEY",
+    authDomain: "YOUR_DOMAIN",
+    projectId: "YOUR_PROJECT",
+  };
+
+  const app = firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+</script>
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Mediaproof AI — Verify Media</title>
@@ -38,6 +52,15 @@
       <button class="btn">Sign in</button>
     </nav>
   </header>
+signinBtn.addEventListener("click", () => {
+  var provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).then((result) => {
+      emailInput.value = result.user.email;
+      alert("Signed in! " + result.user.email);
+  }).catch((err) => {
+      alert("Login failed: " + err.message);
+  });
+});
 
   <main class="page">
     <section class="hero">
