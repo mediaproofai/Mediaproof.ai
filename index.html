@@ -1,224 +1,586 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head> 
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "YOUR_KEY",
-    authDomain: "YOUR_DOMAIN",
-    projectId: "YOUR_PROJECT",
-  };
-
-  const app = firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-</script>
-
+<head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mediaproof AI — Verify Media</title>
+  <title>Mediaproof — Enterprise Image Verification</title>
 
-  <!-- Modern fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Tailwind CDN for utility classes (optional; keep for layout) -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-  <link rel="stylesheet" href="style.css" />
-  <meta name="description" content="Mediaproof AI — premium media verification: analyze images, videos & audio for authenticity." />
+  <!-- Google fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#071021;
+      --card:#0f1724;
+      --muted:#9aa7b8;
+      --accent1:#06b6d4;
+      --accent2:#3b82f6;
+      --accent3:#8b5cf6;
+      --glass: rgba(255,255,255,0.03);
+    }
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto; background:var(--bg); color:#fff;}
+    a{color:var(--accent1)}
+    /* Layout */
+    .container{max-width:1200px;margin:0 auto;padding:28px;}
+    nav{display:flex;justify-content:space-between;align-items:center;gap:16px}
+    .glass{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04); padding:18px;border-radius:16px;backdrop-filter: blur(8px);}
+    .logo{display:flex;gap:12px;align-items:center}
+    .logo img{width:56px;height:56px;border-radius:10px;object-fit:contain}
+    .logo h1{font-size:20px;margin:0;font-weight:800;letter-spacing:1px}
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-weight:700;color:#061529;background:linear-gradient(90deg,var(--accent1),var(--accent2));}
+    .drop-target{border:2px dashed rgba(255,255,255,0.06); border-radius:14px; padding:28px; text-align:center; cursor:pointer; transition:all .18s}
+    .drop-target.drag-over{background:linear-gradient(180deg, rgba(6,182,212,0.06), rgba(59,130,246,0.04)); transform:translateY(-4px)}
+    .input-field{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04);padding:12px;border-radius:10px;color:#fff;width:100%}
+    .btn-primary{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#031025;padding:12px 18px;border-radius:12px;border:none;font-weight:800;cursor:pointer}
+    .muted{color:var(--muted)}
+    .small{font-size:13px;color:var(--muted)}
+    .result-card{background:rgba(255,255,255,0.02);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,0.03)}
+    .progress-bar{height:8px;border-radius:999px;background:rgba(255,255,255,0.04);overflow:hidden}
+    .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent1),var(--accent2))}
+    pre{white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,0.4);padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);font-size:12px;color:#dfeff6;max-height:360px;overflow:auto}
+
+    /* Animated orbs and particles */
+    .animated-bg{position:fixed;inset:0;z-index:0;background:
+      radial-gradient(circle at 10% 20%, rgba(6,182,212,0.06), transparent 10%),
+      radial-gradient(circle at 85% 85%, rgba(139,92,246,0.05), transparent 10%),
+      var(--bg);
+      pointer-events:none}
+    .orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:0.6;z-index:0;pointer-events:none}
+    .orb.o1{width:420px;height:420px;background:radial-gradient(circle, rgba(6,182,212,0.25), transparent);left:-120px;top:-80px}
+    .orb.o2{width:520px;height:520px;background:radial-gradient(circle, rgba(139,92,246,0.2), transparent);right:-160px;bottom:-120px}
+    .particle{position:fixed;width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,0.12);z-index:0;pointer-events:none}
+
+    /* responsive */
+    @media (max-width:900px){nav{flex-direction:column;align-items:flex-start} .grid-2{grid-template-columns:1fr}}
+    .grid-2{display:grid;grid-template-columns:1fr 420px;gap:20px}
+    .center{display:flex;align-items:center;justify-content:center}
+    .hidden{display:none}
+  </style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="brand">
-      <!-- Placeholder SVG logo / brand mark -->
-      <div class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 48 48" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mediaproof logo">
-          <defs>
-            <linearGradient id="g1" x1="0" x2="1">
-              <stop offset="0" stop-color="#7C4DFF" />
-              <stop offset="1" stop-color="#2BC0E4" />
-            </linearGradient>
-          </defs>
-          <rect width="48" height="48" rx="10" fill="url(#g1)" />
-          <path d="M14 30 L24 16 L34 30 Z" fill="rgba(255,255,255,0.95)" opacity="0.95"></path>
-        </svg>
+  <!-- animated background orbs & particles -->
+  <div class="animated-bg" aria-hidden="true"></div>
+  <div class="orb o1" aria-hidden="true"></div>
+  <div class="orb o2" aria-hidden="true"></div>
+  <div id="particles" aria-hidden="true"></div>
+
+  <div class="container" id="app" style="position:relative;z-index:10">
+    <!-- NAV -->
+    <nav class="mb-6">
+      <div class="logo">
+        <!-- Put your 'logo.png' in same folder as this index.html -->
+        <img src="logo.png" alt="Mediaproof logo" id="siteLogo" />
+        <div>
+          <h1>Mediaproof</h1>
+          <div class="small muted">Enterprise Verification • AI + Forensics</div>
+        </div>
       </div>
-      <div class="brand-text">
-        <h1>Mediaproof AI</h1>
-        <p class="tag">Verify Media • Trustworthy AI</p>
+
+      <div style="display:flex;gap:12px;align-items:center">
+        <div id="systemBadge" class="badge">SYSTEM ONLINE</div>
+        <button id="signinBtn" class="glass" style="padding:8px 12px;border-radius:10px;font-weight:700">Sign in</button>
+      </div>
+    </nav>
+
+    <!-- STATS -->
+    <div class="glass mb-6" style="display:flex;gap:18px;align-items:center;justify-content:space-between">
+      <div style="display:flex;gap:18px;align-items:center">
+        <div style="width:64px;height:64px;border-radius:12px;background:linear-gradient(90deg,var(--accent1),var(--accent2));display:grid;place-items:center;font-weight:800;color:#021020">MP</div>
+        <div>
+          <div style="font-weight:900;font-size:18px">AI + Forensics</div>
+          <div class="small muted">Metadata | AI detection | Tampering | Reverse Lookup</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px">
+        <div class="small-muted small">20 free checks/day</div>
+        <div id="userEmailBadge" class="small muted">Not signed in</div>
       </div>
     </div>
 
-    <nav class="top-actions" aria-hidden="true">
-      <button class="btn ghost">Docs</button>
-      <button class="btn">Sign in</button>
-    </nav>
-  </header>
-signinBtn.addEventListener("click", () => {
-  var provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).then((result) => {
-      emailInput.value = result.user.email;
-      alert("Signed in! " + result.user.email);
-  }).catch((err) => {
-      alert("Login failed: " + err.message);
-  });
-});
-
-  <main class="page">
-    <section class="hero">
-      <div class="hero-left">
-        <h2 class="hero-title">AI-powered media verification for the modern world</h2>
-        <p class="hero-sub">Instantly analyze images, video & audio using multimodal AI — highlight manipulations, provenance signals and trust scores with enterprise-grade clarity.</p>
-
-        <div class="upload-card" id="uploadCard">
-          <div class="upload-stage">
-            <label for="fileInput" class="dropzone" id="dropzone" tabindex="0" aria-label="Upload or drop file">
-              <input type="file" id="fileInput" accept="image/*,video/*,audio/*" />
-              <div class="dropzone-content">
-                <div class="illustration-hero" aria-hidden="true">
-                  <!-- hero illustration placeholder -->
-                  <svg viewBox="0 0 120 80" width="120" height="80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="0" y="0" width="120" height="80" rx="12" fill="rgba(255,255,255,0.06)"/>
-                    <g transform="translate(8,8)" opacity="0.95">
-                      <rect x="0" y="0" width="104" height="64" rx="8" fill="url(#hgrad)"/>
-                    </g>
-                    <defs>
-                      <linearGradient id="hgrad" x1="0" x2="1">
-                        <stop offset="0" stop-color="#6C5CE7"/>
-                        <stop offset="1" stop-color="#00C2FF"/>
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                </div>
-                <div class="upload-text">
-                  <strong>Drop file here</strong>
-                  <small>or click to browse • Images, Video, Audio</small>
-                </div>
-              </div>
-            </label>
-
-            <div class="upload-controls">
-              <button id="analyzeBtn" class="btn primary" aria-live="polite">Analyze</button>
-              <div class="file-meta" id="fileMeta" aria-hidden="true"></div>
+    <!-- MAIN -->
+    <div class="grid-2">
+      <!-- LEFT: Upload + Controls -->
+      <div>
+        <section class="glass mb-6">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div>
+              <div style="font-weight:900;font-size:18px">Verify Image Authenticity</div>
+              <div class="small muted">Upload an image and get a detailed background check</div>
             </div>
+            <div class="small muted">Phase 1 — Image</div>
           </div>
 
-          <div class="progress-wrap hidden" id="progressWrap" aria-hidden="true" aria-live="polite">
-            <div class="progress-info">
-              <div class="scan-animation" id="scanAnim" aria-hidden="true">
-                <!-- AI scan animation placeholder (concentric rings) -->
-                <svg viewBox="0 0 48 48" width="36" height="36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="24" cy="24" r="10" stroke="rgba(255,255,255,0.12)" stroke-width="3" />
-                  <circle cx="24" cy="24" r="16" stroke="url(#sgrad)" stroke-width="2" stroke-linecap="round" stroke-dasharray="80"/>
-                  <defs>
-                    <linearGradient id="sgrad" x1="0" x2="1">
-                      <stop offset="0" stop-color="#8A7CFF"/>
-                      <stop offset="1" stop-color="#22D3EE"/>
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </div>
-              <div class="progress-text">
-                <div class="small">Analyzing with Mediaproof AI</div>
-                <div class="big" id="progressPercent">0%</div>
-              </div>
+          <label id="dropArea" class="drop-target" for="fileInput" tabindex="0" aria-label="Drop image here or click to browse">
+            <input id="fileInput" type="file" accept="image/*" style="display:none" />
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" style="opacity:.9">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+                <polyline points="17 8 12 3 7 8" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></line>
+              </svg>
+              <div style="font-weight:800">Drop or click to browse</div>
+              <div class="small muted">PNG, JPG, WebP • Max 10 MB</div>
             </div>
-            <div class="progress-bar">
-              <div class="bar" id="progressBar" style="width: 0%;"></div>
-            </div>
+          </label>
+
+          <div style="display:flex;gap:12px;margin-top:14px">
+            <input id="email" class="input-field" placeholder="Email (optional — receive full report)" />
+            <button id="verifyBtn" class="btn-primary">Verify Now</button>
           </div>
-        </div>
+
+          <div style="margin-top:12px" class="small muted">
+            <div>Pro tip: Use high-resolution originals for the best metadata and tampering checks.</div>
+          </div>
+        </section>
+
+        <!-- EXTRA INFO -->
+        <section class="glass">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-weight:800">Options & Notes</div>
+            <div class="small muted">Limits & privacy</div>
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div class="result-card small-muted" style="min-width:160px">Daily limit: <strong id="limitText">5/day</strong></div>
+            <div class="result-card small-muted">Owner bypass: <strong id="ownerText">OWNER_EMAIL</strong></div>
+            <div class="result-card small-muted">Pro plan: <strong id="proText">Locked</strong></div>
+          </div>
+
+          <div style="margin-top:12px" class="small muted">
+            <strong>Privacy:</strong> Uploaded images are temporarily processed and (optionally) uploaded to ImgBB for stable hosting if needed — change this flow in the worker if you prefer direct processing.
+          </div>
+        </section>
       </div>
 
-      <aside class="hero-right" aria-hidden="true">
-        <div class="placeholder-hero-illustration">
-          <!-- Premium illustration placeholder -->
-          <div class="hero-visual">
-            <svg viewBox="0 0 320 220" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration">
-              <defs>
-                <linearGradient id="illA" x1="0" x2="1">
-                  <stop offset="0" stop-color="#6C5CE7"/>
-                  <stop offset="1" stop-color="#00C2FF"/>
-                </linearGradient>
-              </defs>
-              <rect width="320" height="220" rx="16" fill="url(#illA)" opacity="0.12"/>
-              <g transform="translate(24,28)" fill="#fff" opacity="0.95">
-                <rect x="0" y="0" width="272" height="164" rx="10" fill="rgba(255,255,255,0.03)"/>
-                <circle cx="50" cy="62" r="26" fill="rgba(255,255,255,0.06)"/>
-                <rect x="100" y="40" width="120" height="12" rx="6" fill="rgba(255,255,255,0.06)"/>
-                <rect x="100" y="64" width="160" height="10" rx="5" fill="rgba(255,255,255,0.04)"/>
-              </g>
-            </svg>
+      <!-- RIGHT: Preview + Results -->
+      <aside>
+        <div id="previewCard" class="glass mb-6">
+          <div style="font-weight:800;margin-bottom:10px">Analysis Preview</div>
+          <div id="previewImageWrap" style="width:100%;height:300px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(255,255,255,0.03)">
+            <div id="previewPlaceholder" class="small muted center" style="flex-direction:column;gap:8px">
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" style="opacity:.3">
+                <rect x="3" y="3" width="18" height="18" rx="2" stroke="white" stroke-width="1.2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5" stroke="white" stroke-width="1.2"></circle>
+                <polyline points="21 15 16 10 5 21" stroke="white" stroke-width="1.2"></polyline>
+              </svg>
+              <div style="font-weight:700">No image selected</div>
+              <div class="small muted">Upload an image to see the preview and start analysis</div>
+            </div>
+            <img id="previewImage" src="" alt="preview" style="display:none;max-width:100%;max-height:100%;object-fit:contain" />
           </div>
+
+          <div style="margin-top:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <div class="small muted">Status</div>
+              <div id="statusText" class="small muted">Ready</div>
+            </div>
+            <div class="progress-bar"><span id="progressFill" class="progress-fill"></span></div>
+          </div>
+        </div>
+
+        <div id="resultSummary" class="glass hidden">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="font-weight:800">Verdict & Trust Score</div>
+            <div class="small muted">Composite report</div>
+          </div>
+
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
+            <div style="flex:1">
+              <div class="result-card" style="padding:18px">
+                <div class="small muted">Verdict</div>
+                <div id="verdictLabel" style="font-weight:900;font-size:20px;margin-top:6px">—</div>
+                <div class="small muted" id="generatorGuess" style="margin-top:6px">Generator: —</div>
+              </div>
+            </div>
+
+            <div style="width:120px;text-align:center">
+              <div class="chart-circle result-card" style="--percent:0%;width:120px;height:120px;border-radius:999px;display:flex;align-items:center;justify-content:center">
+                <div style="z-index:2">
+                  <div id="trustScore" style="font-weight:900;font-size:22px">—</div>
+                  <div class="small muted">Trust</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div class="result-card">
+              <div class="small muted">AI Detection</div>
+              <div id="aiScore" style="font-weight:800;font-size:18px;margin-top:8px">—</div>
+              <div class="small muted" id="aiDetails">—</div>
+            </div>
+            <div class="result-card">
+              <div class="small muted">Tampering</div>
+              <div id="tamperScore" style="font-weight:800;font-size:18px;margin-top:8px">—</div>
+              <div class="small muted" id="tamperDetails">—</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px">
+            <div class="small muted">Hosted image</div>
+            <div style="margin-top:6px"><a id="hostedLink" href="#" target="_blank">—</a></div>
+          </div>
+
+          <details style="margin-bottom:6px">
+            <summary class="small muted" style="cursor:pointer">Full JSON report</summary>
+            <pre id="fullReport">—</pre>
+          </details>
+        </div>
+
+        <!-- Payment / pro -->
+        <div class="glass mt-6 center" style="flex-direction:column;gap:10px">
+          <div style="font-weight:800">Get Pro — Unlimited checks</div>
+          <div class="small muted">Upgrade to remove daily limit and support the project</div>
+          <div id="paypalButtons"></div>
+          <div id="proStatus" class="small muted">Not Pro</div>
         </div>
       </aside>
-    </section>
+    </div>
+  </div>
 
-    <section id="results" class="results hidden" aria-live="polite">
-      <h3 class="results-title">Analysis Results</h3>
+  <!-- Firebase (compat) for quick Google sign-in -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
-      <div class="cards-grid">
-        <div class="card focus" id="cardAiScore">
-          <div class="card-icon" aria-hidden="true">
-            <!-- radar icon -->
-            <svg viewBox="0 0 24 24" width="28" height="28"><path fill="none" d="M0 0h24v24H0z"/><path fill="#ffffff" d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2zm1 15h-2v-2h2zm2.07-7.75L13 13V7h2a5 5 0 0 0-.93-2.75z"/></svg>
-          </div>
-          <div class="card-body">
-            <div class="card-label">AI Score</div>
-            <div class="card-value" id="aiScore">—</div>
-            <div class="card-sub" id="realFake">—</div>
-          </div>
-        </div>
+  <!-- PayPal SDK (replace client-id) -->
+  <script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&intent=capture" data-sdk-integration-source="button-factory"></script>
 
-        <div class="card" id="cardTimeline">
-          <div class="card-icon" aria-hidden="true">
-            <!-- calendar icon -->
-            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path fill="#ffffff" d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 14H5V9h14z"/></svg>
-          </div>
-          <div class="card-body">
-            <div class="card-label">First Seen</div>
-            <div class="card-value" id="firstSeen">—</div>
-            <div class="card-sub">Last Posted: <span id="lastPosted">—</span></div>
-          </div>
-        </div>
+  <script>
+  (function () {
+    // ---------- CONFIG - Change these ----------
+    const BACKEND = "https://mediaproof-backend.mediaproofai.workers.dev/analyze"; // your worker analyze endpoint
+    const OWNER_EMAIL = "owner@example.com"; // your email that bypasses limits
+    const DAILY_LIMIT = 5;
+    // Firebase config - replace with your project's config
+    const firebaseConfig = {
+      apiKey: "YOUR_FIREBASE_APIKEY",
+      authDomain: "YOUR_FIREBASE_AUTHDOMAIN",
+      projectId: "YOUR_FIREBASE_PROJECTID",
+      // ... other config (if available)
+    };
+    // ------------------------------------------
 
-        <div class="card" id="cardPostedBy">
-          <div class="card-icon" aria-hidden="true">
-            <!-- user icon -->
-            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path fill="#ffffff" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5.33 0-8 2.67-8 5v1h16v-1c0-2.33-2.67-5-8-5z"/></svg>
-          </div>
-          <div class="card-body">
-            <div class="card-label">Posted By</div>
-            <div class="card-value" id="postedBy">—</div>
-            <div class="card-sub">Source reputation & history</div>
-          </div>
-        </div>
+    // Init Firebase (compat)
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-        <div class="card" id="cardTrust">
-          <div class="card-icon" aria-hidden="true">
-            <!-- shield icon -->
-            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path fill="#ffffff" d="M12 2l7 3v6c0 5-3.33 9.74-7 11-3.67-1.26-7-6-7-11V5z"/></svg>
-          </div>
-          <div class="card-body">
-            <div class="card-label">Trustworthiness</div>
-            <div class="card-value" id="trustScore">—</div>
-            <div class="card-sub">Tampering: <span id="tampering">—</span></div>
-          </div>
-        </div>
-      </div>
+    // UI Elements
+    const dropArea = document.getElementById("dropArea");
+    const fileInput = document.getElementById("fileInput");
+    const previewImage = document.getElementById("previewImage");
+    const previewPlaceholder = document.getElementById("previewPlaceholder");
+    const verifyBtn = document.getElementById("verifyBtn");
+    const statusText = document.getElementById("statusText");
+    const progressFill = document.getElementById("progressFill");
+    const resultSummary = document.getElementById("resultSummary");
+    const verdictLabel = document.getElementById("verdictLabel");
+    const aiScoreEl = document.getElementById("aiScore");
+    const tamperScoreEl = document.getElementById("tamperScore");
+    const tamperDetails = document.getElementById("tamperDetails");
+    const aiDetails = document.getElementById("aiDetails");
+    const hostedLink = document.getElementById("hostedLink");
+    const fullReport = document.getElementById("fullReport");
+    const emailInput = document.getElementById("email");
+    const signinBtn = document.getElementById("signinBtn");
+    const userEmailBadge = document.getElementById("userEmailBadge");
+    const limitText = document.getElementById("limitText");
+    const ownerText = document.getElementById("ownerText");
+    const proText = document.getElementById("proText");
+    const proStatus = document.getElementById("proStatus");
+    const proTextVal = document.getElementById("proText");
+    const ownerTextVal = document.getElementById("ownerText");
 
-      <div class="more-info">
-        <div class="result-panel fade-in">
-          <h4>Inspection details</h4>
-          <p class="muted" id="inspectionDetails">Detailed tampering markers, provenance links and AI model traces will appear here after analysis.</p>
-        </div>
-      </div>
-    </section>
+    ownerTextVal.textContent = OWNER_EMAIL;
 
-  </main>
+    // state
+    let selectedFile = null;
+    let base64Image = null;
+    let controller = null; // for aborting fetches
+    let signedInEmail = null;
 
-  <footer class="site-footer" aria-hidden="true">
-    <div class="copyright">© Mediaproof AI — Built with care</div>
-  </footer>
+    // particles
+    (function createParticles(){
+      const container = document.getElementById('particles');
+      for (let i=0;i<40;i++){
+        const d = document.createElement('div');
+        d.className = 'particle';
+        d.style.left = Math.random()*100 + 'vw';
+        d.style.bottom = (-5 + Math.random()*120) + 'vh';
+        d.style.width = d.style.height = (2 + Math.random()*4)+'px';
+        d.style.opacity = (0.08 + Math.random()*0.25);
+        d.style.transform = `translateX(${(Math.random()*200-100)}px)`;
+        container.appendChild(d);
+      }
+    })();
 
-  <script src="app.js" defer></script>
+    // Drag & drop
+    dropArea.addEventListener("dragover", (e)=>{ e.preventDefault(); dropArea.classList.add('drag-over'); });
+    dropArea.addEventListener("dragleave", ()=> dropArea.classList.remove('drag-over'));
+    dropArea.addEventListener("drop", (e)=>{ e.preventDefault(); dropArea.classList.remove('drag-over'); const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) handleFile(f); });
+    dropArea.addEventListener("click", ()=> fileInput.click());
+    fileInput.addEventListener("change", (e)=> handleFile(e.target.files[0]));
+
+    function handleFile(file){
+      if (!file) return;
+      if (file.size > 10 * 1024 * 1024) {
+        setStatus("File too large (10MB max)", true);
+        return;
+      }
+      selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        previewImage.src = ev.target.result;
+        previewImage.style.display = "block";
+        previewPlaceholder.style.display = "none";
+        base64Image = ev.target.result.split(",")[1];
+      };
+      reader.readAsDataURL(file);
+      setStatus("Image loaded");
+      setProgress(5);
+    }
+
+    // status & progress helpers
+    function setStatus(msg, err=false){ statusText.textContent = msg; statusText.style.color = err ? "#ff6b6b" : ""; }
+    function setProgress(p){ progressFill.style.width = Math.max(0, Math.min(100, p)) + "%"; }
+
+    // Authentication
+    signinBtn.addEventListener("click", async ()=>{
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+        signedInEmail = user.email;
+        userEmailBadge.textContent = signedInEmail;
+        emailInput.value = signedInEmail;
+        setStatus("Signed in: " + signedInEmail);
+      } catch (err) {
+        console.error("Sign-in error", err);
+        alert("Sign-in failed: " + err.message);
+      }
+    });
+
+    // Check local pro status
+    function isLocalPro(){
+      return localStorage.getItem("mp_pro") === "yes";
+    }
+    function updateProUI(){
+      if (isLocalPro()){
+        proText.textContent = "Unlimited (Pro)";
+        proStatus.textContent = "Pro — Unlimited checks";
+      } else {
+        proText.textContent = "Not Pro";
+        proStatus.textContent = "Not Pro";
+      }
+    }
+    updateProUI();
+
+    // local daily rate-limiting (client-side friendly; final enforcement should be server-side)
+    function userKey(){
+      const email = (emailInput.value || signedInEmail || "anon").toLowerCase();
+      return email;
+    }
+    function todayKey(){
+      const d = new Date(); return d.toISOString().slice(0,10);
+    }
+    function canUseCheck(){
+      if (isLocalPro()) return true;
+      const email = userKey();
+      if (email === OWNER_EMAIL.toLowerCase()) return true;
+      const store = JSON.parse(localStorage.getItem("mp_counts") || "{}");
+      const count = store[todayKey()] && store[todayKey()][email] ? store[todayKey()][email] : 0;
+      return count < DAILY_LIMIT;
+    }
+    function incrementLocalCount(){
+      const email = userKey();
+      const day = todayKey();
+      const store = JSON.parse(localStorage.getItem("mp_counts") || "{}");
+      store[day] = store[day] || {};
+      store[day][email] = (store[day][email] || 0) + 1;
+      localStorage.setItem("mp_counts", JSON.stringify(store));
+    }
+    function getLocalCount(){
+      const email = userKey();
+      const day = todayKey();
+      const store = JSON.parse(localStorage.getItem("mp_counts") || "{}");
+      return (store[day] && store[day][email]) || 0;
+    }
+    function updateLimitText(){
+      const left = Math.max(0, DAILY_LIMIT - getLocalCount());
+      limitText.textContent = isLocalPro() ? "Unlimited" : `${DAILY_LIMIT}/day (${left} left today)`;
+    }
+    updateLimitText();
+
+    // verify click
+    verifyBtn.addEventListener("click", async ()=>{
+      // guard
+      if (!selectedFile){
+        setStatus("Please select an image first", true);
+        return;
+      }
+      if (!canUseCheck()){
+        setStatus("Daily limit reached. Upgrade to Pro or wait until tomorrow.", true);
+        return;
+      }
+
+      // prepare form data (multipart/form-data)
+      const fd = new FormData();
+      fd.append("file", selectedFile);
+      const emailVal = (emailInput.value || signedInEmail || "").trim();
+      if (emailVal) fd.append("email", emailVal);
+      // add metadata and flags
+      fd.append("client_side", "true"); // helpful for server logs
+      if (isLocalPro()) fd.append("pro", "1");
+
+      // abort controller for timeout
+      if (controller) controller.abort();
+      controller = new AbortController();
+      const timeoutId = setTimeout(()=> controller.abort(), 30000);
+
+      try {
+        setStatus("Uploading & analyzing...");
+        setProgress(20);
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = "Analyzing...";
+
+        const resp = await fetch(BACKEND, { method: "POST", body: fd, signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!resp.ok) {
+          // try to extract JSON error
+          let text = await resp.text().catch(()=>null);
+          try { const j = JSON.parse(text); throw new Error(j.error || text || ("HTTP " + resp.status)); }
+          catch(err){ throw new Error(text || ("HTTP " + resp.status)); }
+        }
+
+        setProgress(55);
+        const json = await resp.json();
+        setProgress(85);
+
+        // show results
+        resultSummary.classList.remove("hidden");
+        // ai score normalisation - backend may return various keys
+        const ai_score_raw = json.ai_score ?? json.aiScore ?? json.ai_result ?? null;
+        // attempt numeric conversion; some models return 0-1, others 0-100
+        let ai_pct = null;
+        if (typeof ai_score_raw === "number") {
+          ai_pct = ai_score_raw > 1 ? Math.round(ai_score_raw) : Math.round(ai_score_raw * 100);
+        } else if (Array.isArray(ai_score_raw) && ai_score_raw.length){
+          // some HF outputs are arrays of labels / scores
+          const first = ai_score_raw[0];
+          if (first && typeof first.score === "number") ai_pct = Math.round(first.score * 100);
+        } else {
+          // try common fields
+          if (json.ai_result && Array.isArray(json.ai_result) && json.ai_result[0] && typeof json.ai_result[0].score === "number")
+            ai_pct = Math.round(json.ai_result[0].score * 100);
+        }
+
+        // fallback if backend provides trust_score
+        const trust = json.trust_score ?? json.trustScore ?? (ai_pct !== null ? Math.max(0, 100 - ai_pct) : null);
+
+        // pick verdict label: use backend verdict if available else build heuristics
+        let verdict = json.verdict || "Uncertain";
+        if (!json.verdict){
+          if (ai_pct !== null) {
+            if (ai_pct >= 75) verdict = "AI Generated";
+            else if (ai_pct <= 30) verdict = "Authentic / Real";
+            else verdict = "Unclear";
+          }
+        }
+
+        // tampering
+        const tamper_level = (json.tampering && json.tampering.level) ? json.tampering.level : (json.tampering_score || json.tamperingScore || null);
+        let tamper_pct = null;
+        if (typeof tamper_level === "number") tamper_pct = Math.round((tamper_level > 1 ? tamper_level*100 : tamper_level*100));
+        // generator guess
+        const gen = json.generator_guess || json.generator || "unknown";
+
+        // update UI
+        verdictLabel.textContent = verdict;
+        document.getElementById("generatorGuess").textContent = "Generator guess: " + (gen || "unknown");
+        document.getElementById("trustScore").textContent = (trust !== null ? Math.round(trust) : "—");
+        aiScoreEl.textContent = (ai_pct !== null ? ai_pct + "%" : (json.ai_score ? json.ai_score : "—"));
+        aiDetails.textContent = json.ai_details || json.ai_result?.slice?.(0,3)?.map?.(x=> (x.label||x.name)+":"+ (Math.round((x.score||0)*100))+"%")?.join(", ") || "";
+        tamperScoreEl.textContent = (tamper_pct !== null ? tamper_pct + "%" : (json.tampering_score ? json.tampering_score : "—"));
+        tamperDetails.textContent = json.tampering?.reason || json.tampering?.note || "";
+        hostedLink.textContent = json.uploaded_to_imgbb || json.hosted_url || "Not available";
+        hostedLink.href = json.uploaded_to_imgbb || json.hosted_url || "#";
+        fullReport.textContent = JSON.stringify(json, null, 2);
+
+        // increment local rate limit count (client-side only; server should enforce too)
+        incrementLocalCount();
+        updateLimitText();
+
+        setStatus("Analysis complete");
+        setProgress(100);
+
+      } catch (err) {
+        console.error(err);
+        if (err.name === "AbortError") setStatus("Request timed out", true);
+        else setStatus("Error: " + (err.message || err), true);
+        setProgress(0);
+      } finally {
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = "Verify Now";
+      }
+    });
+
+    // PAYPAL button - client side only; ideally implement server-side order creation for production
+    // Replace 'YOUR_PAYPAL_CLIENT_ID' in the <script> src query string with your real client id, or replace this client render with server-driven creation.
+    if (typeof paypal !== "undefined") {
+      paypal.Buttons({
+        style: { layout: 'vertical', color: 'blue', shape: 'pill', label: 'pay' },
+        createOrder: function(data, actions) {
+          return actions.order.create({
+            purchase_units: [{
+              amount: { value: '4.99', currency_code: 'USD' },
+              description: 'Mediaproof Pro — unlimited verifications'
+            }]
+          });
+        },
+        onApprove: function(data, actions) {
+          return actions.order.capture().then(function(details){
+            // mark local pro (also send to your backend to record purchase if desired)
+            localStorage.setItem("mp_pro","yes");
+            updateProUI();
+            updateLimitText();
+            alert("Payment successful — Pro unlocked. Thank you!");
+          });
+        },
+        onError: function(err){
+          console.error("PayPal error", err);
+          alert("Payment failed: " + (err && err.message ? err.message : err));
+        }
+      }).render('#paypalButtons');
+    } else {
+      // PayPal not loaded or client-id missing
+      document.getElementById('paypalButtons').innerHTML = '<div class="small muted">PayPal not available — set your client id in the HTML to enable payments.</div>';
+    }
+
+    // owner UI convenience: check owner bypass & update UI
+    (function(){
+      if ((emailInput.value || "").toLowerCase() === OWNER_EMAIL.toLowerCase() || signedInEmail === OWNER_EMAIL.toLowerCase()) {
+        // owner — unlimited
+        localStorage.setItem("mp_pro", "yes");
+      }
+      updateProUI();
+      updateLimitText();
+    })();
+
+    // keyboard accessibility: pressing Enter triggers file open when drop area focused
+    dropArea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') fileInput.click();
+    });
+
+    // Expose minimal API for debugging
+    window.mediaproof = {
+      BACKEND, OWNER_EMAIL, getLocalCount, isLocalPro, updateLimitText
+    };
+  })();
+  </script>
 </body>
 </html>
+
