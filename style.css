@@ -1,0 +1,53 @@
+body {
+    font-family: Arial, sans-serif;
+    background: url("assets/bg.jpg") no-repeat center center fixed;
+    background-size: cover;
+    margin: 0;
+    padding: 0;
+}
+
+.header {
+    text-align: center;
+    padding: 40px 10px;
+    background: rgba(0,0,0,0.5);
+    color: white;
+}
+
+.logo {
+    width: 80px;
+    margin-bottom: 10px;
+}
+
+.upload-box {
+    background: white;
+    width: 90%;
+    max-width: 450px;
+    margin: 40px auto;
+    padding: 25px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+button {
+    margin-top: 12px;
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.results {
+    width: 90%;
+    max-width: 600px;
+    background: white;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.hidden {
+    display: none;
+}
+
+.result-row {
+    margin-bottom: 10px;
+}
